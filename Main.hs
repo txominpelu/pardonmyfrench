@@ -3,7 +3,7 @@
 -- GPL version 2 or later (see http://www.gnu.org/copyleft/gpl.html)
 --
 import System.Environment
-import ImproveMyFrench.FrenchParser
+import PardonMyFrench.FrenchParser
 import Text.Parsec
 import Data.List.Split
 import Data.Either

@@ -1,4 +1,4 @@
-module ImproveMyFrench.FrenchParser where
+module PardonMyFrench.FrenchParser where
 
 import Text.ParserCombinators.Parsec
 
