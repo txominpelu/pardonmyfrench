@@ -4,42 +4,50 @@
 --
 import System.Environment
 import PardonMyFrench.FrenchParser
+import PardonMyFrench.CorrectMistakes
 import Text.Parsec
-import Data.List.Split
 import Data.Either
 import Data.List
- 
+import Data.Random
+import Data.Random.List
+import Data.Random.Source.DevRandom
+import qualified Data.Random.Extras
 
-correctWord :: Word => String
-correctWord (Correct x) = x
-correctWord (ErroredWord w c) = c
+errorsFile = "errors.csv"
+batchQuestionsSize = 3
 
-wrongWord :: Word => String
-wrongWord (Correct x) = x
-wrongWord (ErroredWord w c) = w
+readMistakes :: String => IO [Sentence] 
+readMistakes file = do 
+   content <- readFile file 
+   let linesOfFiles = lines content
+       parsed = map (\l -> parse sentence "" l)  linesOfFiles
+   return (rights parsed)
 
-correctSentence :: Sentence => [String]
-correctSentence (Sentence s) = map correctWord s
-
-wrongSentence :: Sentence => [String]
-wrongSentence (Sentence s) = map wrongWord s
-
-askQuestion :: Sentence => IO ()
-askQuestion sentence = do
-   let wSentence = (wrongSentence sentence)
-   putStrLn $ "?> " ++ (intercalate " " wSentence)
-   putStrLn "$> "
-   input <- getLine
-   putStrLn $ show $ (splitOn " " input) == (correctSentence sentence)
+correctMistakes :: [Sentence] => IO ()
+correctMistakes mistakes = do
+   tries <- mapM (askTillRight []) mistakes 
+   mapM logTries tries
+   let totalNumTries = foldl1' (+) (map length tries)
+   putStrLn $ "Total tries: (" ++ show totalNumTries  ++ "/" ++ show (length mistakes) ++ ")"
 
 
+repl :: [Sentence] => String => IO () 
+repl mistakes "mistakes" = do 
+   batchMistakes <- runRVar (Data.Random.Extras.sample batchQuestionsSize mistakes) DevRandom
+   correctMistakes batchMistakes
+   repl mistakes "main"
+repl mistakes "quit" = do 
+   putStrLn "Bye"
+repl mistakes any = do
+   putStrLn "$>"
+   line <- getLine
+   repl mistakes line
+  
 -- | 'main' runs the main program
 main :: IO ()
 main = do
-   args <- getArgs
-   content <- readFile (args !! 0) 
-   let linesOfFiles = lines content
-       parsed = map (\l -> parse sentence "" l)  linesOfFiles
-   mapM_ askQuestion (rights parsed)
+   mistakes <- readMistakes errorsFile
+   repl mistakes "main"
+
        
  

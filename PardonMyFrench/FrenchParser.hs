@@ -9,6 +9,21 @@ instance Show Word where
     show (ErroredWord error correct)   = "[" ++ error ++ "|" ++ correct ++ "]"
     show (Correct word) = word
 
+
+correctWord :: Word => String
+correctWord (Correct x) = x
+correctWord (ErroredWord w c) = c
+
+wrongWord :: Word => String
+wrongWord (Correct x) = x
+wrongWord (ErroredWord w c) = w
+
+correctSentence :: Sentence => [String]
+correctSentence (Sentence s) = map correctWord s
+
+wrongSentence :: Sentence => [String]
+wrongSentence (Sentence s) = map wrongWord s
+
 data Sentence = Sentence [Word] deriving (Show)
 
 sentence :: Parser Sentence
